@@ -8,18 +8,20 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private final HashMap<Integer, User> users = new HashMap<>();
+    private final Map<Integer, User> users = new HashMap<>();
 
     @GetMapping()
-    public HashMap<Integer, User> returnAllUsers() {
-        log.debug("Общее количество пользователей: {}", users.size());
-        return users;
+    public List<User> returnAll() {
+        return new ArrayList<>(users.values());
     }
 
     @PostMapping()

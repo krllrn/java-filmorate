@@ -4,15 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping("/films")
@@ -23,9 +22,8 @@ public class FilmController {
     private final HashMap<Integer, Film> films = new HashMap<>();
 
     @GetMapping()
-    public HashMap<Integer, Film> returnAllFilms() {
-        log.debug("Общее количество фильмов: {}", films.size());
-        return films;
+    public List<Film> returnAll() {
+        return new ArrayList<>(films.values());
     }
 
     @PostMapping()

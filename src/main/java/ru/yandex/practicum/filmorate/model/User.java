@@ -18,6 +18,7 @@ public class User {
     @NotNull
     @NotBlank
     @NotEmpty
+    @Pattern(regexp = "^\\S*$")
     private String login;
 
     private String name;
