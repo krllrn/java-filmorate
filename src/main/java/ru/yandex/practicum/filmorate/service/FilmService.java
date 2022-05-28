@@ -2,14 +2,13 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,35 +24,41 @@ public class FilmService {
 
     // добавление лайка
     public void addLike(int filmId, int userId) {
-        if (inMemoryUserStorage.returnAll().get(userId) == null || inMemoryFilmStorage.returnAll().get(filmId) == null) {
-
-        }
-        User user = inMemoryUserStorage.returnAll().get(userId);
-        Film film = inMemoryFilmStorage.returnAll().get(filmId);
-        Set<User> likes = film.getLikes();
-        likes.add(user);
-        film.setLikes(likes);
+        User user = inMemoryUserStorage.returnAll().parallelStream()
+                .filter(x -> x.getId() == userId)
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
+        Film film = inMemoryFilmStorage.returnAll().parallelStream()
+                .filter(x -> x.getId() == filmId)
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
+        film.addLikes(user);
     }
+
     // удаление лайка
     public void deleteLike(int filmId, int userId) {
-        User user = inMemoryUserStorage.returnAll().get(userId);
-        Film film = inMemoryFilmStorage.returnAll().get(filmId);
-        Set<User> likes = film.getLikes();
-        likes.remove(user);
-        film.setLikes(likes);
+        User user = inMemoryUserStorage.returnAll().parallelStream()
+                .filter(x -> x.getId() == userId)
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
+        Film film = inMemoryFilmStorage.returnAll().parallelStream()
+                .filter(x -> x.getId() == filmId)
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
+        film.removeLikes(user);
     }
+
     // 10 фильмов с бОльшим кол-вом лайков
     public List<Film> popularFilms(int count) {
-        List<Film> films = inMemoryFilmStorage.returnAll();
         if (count > 0) {
-            return films.stream()
+            return inMemoryFilmStorage.returnAll().stream()
+                    .sorted((f1, f2)->f2.getLikes().size() - f1.getLikes().size())
                     .limit(count)
-                    .sorted((f1, f2)->f1.getLikes().size() - f2.getLikes().size())
                     .collect(Collectors.toList());
         } else {
-            return films.stream()
+            return inMemoryFilmStorage.returnAll().stream()
+                    .sorted((f1, f2)->f2.getLikes().size() - f1.getLikes().size())
                     .limit(10)
-                    .sorted((f1, f2) -> f1.getLikes().size() - f2.getLikes().size())
                     .collect(Collectors.toList());
         }
     }

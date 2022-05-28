@@ -7,7 +7,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 public interface FilmStorage {
-    public List<Film> returnAll();
-    public void create(Film film);
-    public void update(Film film);
+    List<Film> returnAll();
+    Film create(Film film);
+    Film update(Film film);
 }

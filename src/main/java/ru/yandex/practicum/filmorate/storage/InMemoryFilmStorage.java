@@ -1,10 +1,9 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -27,34 +26,33 @@ public class InMemoryFilmStorage implements FilmStorage{
         return new ArrayList<>(films.values());
     }
 
-    public void create(@Valid @RequestBody Film film) {
-        try {
-            if (films.containsKey(film.getId())) {
-                throw new ValidationException("This film already exist!");
-            }
-            if (film.getReleaseDate().isBefore(startFilmsDate)) {
-                throw new ValidationException("Wrong release date. Films starts from: " + startFilmsDate);
-            }
-            filmId = films.size() + 1;
-            film.setId(filmId);
-            log.debug("Объект для сохранения: {}", film);
-            films.put(film.getId(), film);
-        } catch (ValidationException e) {
-            log.error("ОШИБКА: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+    public Film create(@Valid @RequestBody Film film) {
+        if (films.containsKey(film.getId())) {
+            throw new ValidationException("This film already exist!");
         }
+        if (film.getReleaseDate().isBefore(startFilmsDate)) {
+            throw new ValidationException("Wrong release date. Films starts from: " + startFilmsDate);
+        }
+        filmId = films.size() + 1;
+        film.setId(filmId);
+        log.debug("Объект для сохранения: {}", film);
+        films.put(filmId, film);
+        return film;
     }
 
-    public void update(@Valid @RequestBody Film film) {
-        try {
-            if (film.getReleaseDate().isBefore(startFilmsDate)) {
-                throw new ValidationException("Wrong release date. Films starts from: " + startFilmsDate);
-            }
-            log.debug("Объект для обновления: {}", film);
-            films.put(film.getId(), film);
-        } catch (ValidationException e) {
-            log.error("ОШИБКА: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+    public Film update(@Valid @RequestBody Film film) {
+        if (film.getReleaseDate().isBefore(startFilmsDate)) {
+            throw new ValidationException("Wrong release date. Films starts from: " + startFilmsDate);
         }
+        if (!films.containsKey(film.getId())) {
+            throw new NotFoundException("ID фильма не найден!");
+        }
+        log.debug("Объект для обновления: {}", film);
+        films.put(film.getId(), film);
+        return film;
+    }
+
+    public HashMap<Integer, Film> getFilms() {
+        return films;
     }
 }

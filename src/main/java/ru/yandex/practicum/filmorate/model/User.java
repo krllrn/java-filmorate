@@ -1,13 +1,19 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Data;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
-@Data
+
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode
+@ToString
 public class User {
     private int id;
 
@@ -28,6 +34,16 @@ public class User {
     @Past
     private LocalDate birthday;
 
-    private Set<User> friends;
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<User> friends = new HashSet<>();
 
+    public void addFriends(User user) {
+        friends.add(user);
+    }
+
+    public void removeFriend(User user) {
+        friends.remove(user);
+    }
 }
