@@ -40,6 +40,13 @@ public class InMemoryFilmStorage implements FilmStorage{
         return film;
     }
 
+    public void delete(int id) {
+        if (!films.containsKey(id)) {
+            throw new ValidationException("ID фильма не найден.");
+        }
+        films.remove(id);
+    }
+
     public Film update(@Valid @RequestBody Film film) {
         if (film.getReleaseDate().isBefore(startFilmsDate)) {
             throw new ValidationException("Wrong release date. Films starts from: " + startFilmsDate);

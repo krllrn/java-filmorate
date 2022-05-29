@@ -22,7 +22,7 @@ public class InMemoryUserStorage implements UserStorage {
         return new ArrayList<>(users.values());
     }
 
-    public @ResponseBody User create(User user) {
+    public User create(User user) {
         if (users.containsKey(user.getId())) {
            throw new ValidationException("User already exist!");
         }
@@ -36,7 +36,14 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    public @ResponseBody User update(User user) {
+    public void delete(int id) {
+        if (!users.containsKey(id)) {
+            throw new ValidationException("ID пользователя не найден.");
+        }
+        users.remove(id);
+    }
+
+    public User update(User user) {
         if (user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }

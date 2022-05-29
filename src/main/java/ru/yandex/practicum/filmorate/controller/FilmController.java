@@ -46,6 +46,11 @@ public class FilmController {
         return inMemoryFilmStorage.update(film);
     }
 
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable int id) {
+        inMemoryFilmStorage.delete(id);
+    }
+
 // ----------------- LIKES ----------------------------
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable int id, @PathVariable int userId) {

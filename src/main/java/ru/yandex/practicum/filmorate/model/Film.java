@@ -37,15 +37,11 @@ public class Film {
     @ToString.Exclude
     private Set<User> likes = new HashSet<>();
 
-    int likesValue = 0;
-
     public void addLikes(User user) {
         likes.add(user);
-        likesValue++;
     }
 
     public void removeLikes(User user) {
         likes.remove(user);
-        likesValue--;
     }
 }

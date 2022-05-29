@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -78,6 +78,38 @@ class FilmorateApplicationTests {
 				.andExpect(status().isBadRequest());
 	}
 
+	@Test
+	void notFoundIfNoUserIdInStorage() throws Exception {
+		mockMvc.perform(get("/users/9999")
+						.contentType("application/json")
+						.content("{}"))
+				.andExpect(status().isNotFound());
+	}
+	//------FRIENDS-----------
+	@Test
+	void serverErrorIfUserAndFriendSameID() throws Exception {
+		mockMvc.perform(put("/users/1/friends/1")
+						.contentType("application/json")
+						.content("{}"))
+				.andExpect(status().isInternalServerError());
+	}
+
+	@Test
+	void notFoundIfNoUserOrFriendIdInStorage() throws Exception {
+		mockMvc.perform(put("/users/1/friends/2")
+						.contentType("application/json")
+						.content("{}"))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void serverErrorIfUserIdIsNegative() throws Exception {
+		mockMvc.perform(get("/users/-1/friends")
+						.contentType("application/json")
+						.content("{}"))
+				.andExpect(status().isInternalServerError());
+	}
+
 // ------------------- FILMS ----------------------------
 
 	@Test
@@ -132,5 +164,45 @@ class FilmorateApplicationTests {
 						.contentType("application/json")
 						.content("{}"))
 				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void notFoundIfNoFilmIdInStorage() throws Exception {
+		mockMvc.perform(get("/films/9999")
+						.contentType("application/json")
+						.content("{}"))
+				.andExpect(status().isNotFound());
+	}
+	//------LIKES-----------
+	@Test
+	void serverErrorIfFilmIDIsNegative() throws Exception {
+		mockMvc.perform(put("/films/-1/like/1")
+						.contentType("application/json")
+						.content("{}"))
+				.andExpect(status().isInternalServerError());
+	}
+
+	@Test
+	void serverErrorIfUserIDIsNegative() throws Exception {
+		mockMvc.perform(put("/films/1/like/-1")
+						.contentType("application/json")
+						.content("{}"))
+				.andExpect(status().isInternalServerError());
+	}
+
+	@Test
+	void notFoundIfNoUserOrFilmIdInStorage() throws Exception {
+		mockMvc.perform(put("/films/1/like/2")
+						.contentType("application/json")
+						.content("{}"))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void serverErrorIfCountIsNegative() throws Exception {
+		mockMvc.perform(get("/films/popular?count=-1")
+						.contentType("application/json")
+						.content("{}"))
+				.andExpect(status().isInternalServerError());
 	}
 }

@@ -28,10 +28,6 @@ public class UserService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Объект не найден!"));
         user.addFriends(friend);
-        userToFriend(user, friend);
-    }
-
-    public void userToFriend(User user, User friend) {
         friend.addFriends(user);
     }
 

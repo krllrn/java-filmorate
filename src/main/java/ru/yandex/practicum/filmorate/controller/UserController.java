@@ -48,9 +48,17 @@ public class UserController {
         return inMemoryUserStorage.update(user);
     }
 
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable int id) {
+        inMemoryUserStorage.delete(id);
+    }
+
 // -------------- FRIENDS ---------------------------------------
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable(required = false) int friendId) {
+        if (id < 0 || friendId < 0) {
+            throw new IncorrectVarException("ID не должны быть отрицательными!");
+        }
         if (id == friendId) {
             throw new IncorrectVarException("ID's не должны быть равны");
         }
