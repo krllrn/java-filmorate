@@ -56,9 +56,6 @@ public class UserController {
 // -------------- FRIENDS ---------------------------------------
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable(required = false) int friendId) {
-        if (id < 0 || friendId < 0) {
-            throw new IncorrectVarException("ID не должны быть отрицательными!");
-        }
         if (id == friendId) {
             throw new IncorrectVarException("ID's не должны быть равны");
         }
@@ -67,9 +64,6 @@ public class UserController {
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
-        if (id < 0 || friendId < 0) {
-            throw new IncorrectVarException("ID не должны быть отрицательными!");
-        }
         if (id == friendId) {
             throw new IncorrectVarException("ID's не должны быть равны");
         }
