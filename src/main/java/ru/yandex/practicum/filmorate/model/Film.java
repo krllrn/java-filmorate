@@ -21,21 +21,42 @@ public class Film {
     @NotEmpty
     private String name;
 
-    @Size(max = 200)
     @NotNull
     @NotBlank
     @NotEmpty
     private String description;
 
+    @NotNull
     private LocalDate releaseDate;
 
     @Positive
     private int duration;
 
+    private Mpa mpa;
+
+    private Genre genres;
+
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<User> likes = new HashSet<>();
+
+    public Film (String name, String description, LocalDate releaseDate, int duration, Mpa mpa) {
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+    }
+
+    public Film (int id, String name, String description, LocalDate releaseDate, int duration, Mpa mpa) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+    }
 
     public void addLikes(User user) {
         likes.add(user);
@@ -44,4 +65,5 @@ public class Film {
     public void removeLikes(User user) {
         likes.remove(user);
     }
+
 }

@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.exception.IncorrectVarException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.InDbUserStorage;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -16,41 +16,39 @@ import java.util.*;
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    InMemoryUserStorage inMemoryUserStorage;
+    InDbUserStorage inDbUserStorage;
     UserService userService;
 
     @Autowired
-    public UserController (InMemoryUserStorage inMemoryUserStorage, UserService userService) {
-        this.inMemoryUserStorage = inMemoryUserStorage;
+    public UserController (InDbUserStorage inDbUserStorage, UserService userService) {
+        this.inDbUserStorage = inDbUserStorage;
         this.userService = userService;
     }
 
     @GetMapping()
     public List<User> returnAll() {
-        return inMemoryUserStorage.returnAll();
+        return inDbUserStorage.returnAll();
     }
 
     @GetMapping("/{id}")
     public User findById(@PathVariable int id) {
-        return inMemoryUserStorage.returnAll().stream()
-                .filter(x -> x.getId() == id)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
+        return inDbUserStorage.getUserById(id);
     }
 
     @PostMapping()
     public @ResponseBody User create(@Valid @RequestBody User user) {
-        return inMemoryUserStorage.create(user);
+        inDbUserStorage.create(user);
+        return inDbUserStorage.getUserByLogin(user);
     }
 
     @PutMapping()
     public @ResponseBody User update(@Valid @RequestBody User user) {
-        return inMemoryUserStorage.update(user);
+        return inDbUserStorage.update(user);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {
-        inMemoryUserStorage.delete(id);
+        inDbUserStorage.delete(id);
     }
 
 // -------------- FRIENDS ---------------------------------------

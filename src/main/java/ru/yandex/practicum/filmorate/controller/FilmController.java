@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.exception.IncorrectVarException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InDbFilmStorage;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -14,23 +14,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    InMemoryFilmStorage inMemoryFilmStorage;
+    InDbFilmStorage inDbFilmStorage;
     FilmService filmService;
 
     @Autowired
-    public FilmController (InMemoryFilmStorage inMemoryFilmStorage, FilmService filmService) {
-        this.inMemoryFilmStorage = inMemoryFilmStorage;
+    public FilmController (InDbFilmStorage inDbFilmStorage, FilmService filmService) {
+        this.inDbFilmStorage = inDbFilmStorage;
         this.filmService = filmService;
     }
 
     @GetMapping()
     public List<Film> returnAll() {
-        return inMemoryFilmStorage.returnAll();
+        return inDbFilmStorage.returnAll();
     }
 
     @GetMapping("/{id}")
     public Film findById(@PathVariable int id) {
-        return inMemoryFilmStorage.returnAll().stream()
+        return inDbFilmStorage.returnAll().stream()
                 .filter(x -> x.getId() == id)
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Объект не найден!"));
@@ -38,17 +38,18 @@ public class FilmController {
 
     @PostMapping()
     public @ResponseBody Film create(@Valid @RequestBody Film film) {
-        return inMemoryFilmStorage.create(film);
+        inDbFilmStorage.create(film);
+        return inDbFilmStorage.getFilmByName(film);
     }
 
     @PutMapping()
     public @ResponseBody Film update(@Valid @RequestBody Film film) {
-        return inMemoryFilmStorage.update(film);
+        return inDbFilmStorage.update(film);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {
-        inMemoryFilmStorage.delete(id);
+        inDbFilmStorage.delete(id);
     }
 
 // ----------------- LIKES ----------------------------

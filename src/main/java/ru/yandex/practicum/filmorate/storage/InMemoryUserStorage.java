@@ -2,15 +2,11 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.ResponseBody;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -22,7 +18,7 @@ public class InMemoryUserStorage implements UserStorage {
         return new ArrayList<>(users.values());
     }
 
-    public User create(User user) {
+    public void create(User user) {
         if (users.containsKey(user.getId())) {
            throw new ValidationException("User already exist!");
         }
@@ -33,7 +29,7 @@ public class InMemoryUserStorage implements UserStorage {
         user.setId(userId);
         log.debug("Объект для сохранения: {}", user);
         users.put(userId, user);
-        return user;
+        //return user;
     }
 
     public void delete(int id) {
@@ -55,11 +51,7 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    public Map<Integer, User> getUsers() {
-        return users;
-    }
-
     public User getUserById(int id) {
-        return users.get(id);
+        return null;
     }
 }
