@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.IncorrectVarException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.InDbFilmStorage;
@@ -30,16 +29,12 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film findById(@PathVariable int id) {
-        return inDbFilmStorage.returnAll().stream()
-                .filter(x -> x.getId() == id)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
+        return inDbFilmStorage.getFilmById(id);
     }
 
     @PostMapping()
     public @ResponseBody Film create(@Valid @RequestBody Film film) {
-        inDbFilmStorage.create(film);
-        return inDbFilmStorage.getFilmByName(film);
+        return inDbFilmStorage.create(film);
     }
 
     @PutMapping()

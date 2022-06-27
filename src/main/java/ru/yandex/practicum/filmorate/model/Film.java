@@ -7,10 +7,12 @@ import javax.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 @ToString
 public class Film {
@@ -34,7 +36,7 @@ public class Film {
 
     private Mpa mpa;
 
-    private Genre genres;
+    private Set<Genre> genres;
 
     @JsonIgnore
     @EqualsAndHashCode.Exclude

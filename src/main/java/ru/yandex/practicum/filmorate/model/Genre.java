@@ -6,14 +6,14 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 @ToString
 public class Genre {
     int id;
     String name;
 
-    public Genre(int id, String name) {
+    public Genre(int id) {
         this.id = id;
-        this.name = name;
     }
 }
