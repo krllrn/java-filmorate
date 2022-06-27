@@ -3,11 +3,15 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -28,21 +32,28 @@ public class InDbUserStorage implements UserStorage {
     }
 
     @Override
-    public void create(User user) {
+    public User create(User user) {
         if (user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
         String sqlQuery = "insert into users(email, name, login, birthday) " + "values (?, ?, ?, ?)";
-        jdbcTemplate.update(sqlQuery,
-                user.getEmail(),
-                user.getName(),
-                user.getLogin(),
-                user.getBirthday());
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection
+                    .prepareStatement(sqlQuery, new String[]{"id"});
+            ps.setString(1, user.getEmail());
+            ps.setString(2, user.getName());
+            ps.setString(3, user.getLogin());
+            ps.setDate(4, Date.valueOf(user.getBirthday()));
+            return ps;
+        }, keyHolder);
+        user.setId((Integer) keyHolder.getKey());
+        return user;
     }
 
     @Override
     public void delete(int id) {
-        String sqlQuery = "delete from users where id = ?";
+        String sqlQuery = "DELETE FROM users WHERE id = ?";
         jdbcTemplate.update(sqlQuery, id);
     }
 
@@ -83,26 +94,6 @@ public class InDbUserStorage implements UserStorage {
         } else {
             log.info("Пользователь с идентификатором {} не найден.", id);
             throw new NotFoundException("Пользователь не найден");
-        }
-    }
-
-    public User getUserByLogin(User user) {
-        String sqlQuery = "select * from users where login = ?";
-        SqlRowSet userRowSet = jdbcTemplate.queryForRowSet(sqlQuery, user.getLogin());
-        if (userRowSet.next()) {
-            User userFound = new User(userRowSet.getInt("id"),
-                    userRowSet.getString("email"),
-                    userRowSet.getString("name"),
-                    userRowSet.getString("login"),
-                    LocalDate.parse(userRowSet.getString("birthday"))
-            );
-
-            log.info("Найден пользователь: {} {}", user.getId(), user.getLogin());
-
-            return userFound;
-        } else {
-            log.info("Пользователь с login {} не найден.", user.getLogin());
-            return null;
         }
     }
 

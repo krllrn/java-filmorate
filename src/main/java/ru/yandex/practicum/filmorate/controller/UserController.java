@@ -36,8 +36,8 @@ public class UserController {
 
     @PostMapping()
     public @ResponseBody User create(@Valid @RequestBody User user) {
-        inDbUserStorage.create(user);
-        return inDbUserStorage.getUserByLogin(user);
+        return inDbUserStorage.create(user);
+        //return inDbUserStorage.getUserByLogin(user);
     }
 
     @PutMapping()

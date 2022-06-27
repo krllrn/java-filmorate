@@ -8,7 +8,7 @@ import java.util.List;
 @Qualifier("inDbUserStorage")
 public interface UserStorage {
     List<User> returnAll();
-    void create(User user);
+    User create(User user);
     void delete(int id);
     User update(User user);
     User getUserById(int id);

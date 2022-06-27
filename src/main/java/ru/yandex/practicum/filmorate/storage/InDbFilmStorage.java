@@ -83,8 +83,8 @@ public class InDbFilmStorage implements FilmStorage {
                     film.getDuration(),
                     film.getMpa().getId(),
                     film.getId());
+            jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", film.getId());
             if (film.getGenres() != null  && !film.getGenres().isEmpty()) {
-                jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", film.getId());
                 linkToGenre(film);
             }
             return film;
@@ -93,7 +93,7 @@ public class InDbFilmStorage implements FilmStorage {
 
     @Override
     public Film getFilmById(int id) {
-        Set<Genre> filmGenres = new HashSet<>();
+        TreeSet<Genre> filmGenres = new TreeSet<>();
         String sqlQuery = "select * from films where id = ?";
         SqlRowSet filmRowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
         if (filmRowSet.next()) {

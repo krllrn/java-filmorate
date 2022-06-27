@@ -18,7 +18,7 @@ public class InMemoryUserStorage implements UserStorage {
         return new ArrayList<>(users.values());
     }
 
-    public void create(User user) {
+    public User create(User user) {
         if (users.containsKey(user.getId())) {
            throw new ValidationException("User already exist!");
         }
@@ -29,7 +29,7 @@ public class InMemoryUserStorage implements UserStorage {
         user.setId(userId);
         log.debug("Объект для сохранения: {}", user);
         users.put(userId, user);
-        //return user;
+        return user;
     }
 
     public void delete(int id) {
