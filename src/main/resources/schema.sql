@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS films (
 	rating_id INTEGER REFERENCES film_rating (id),
 	CONSTRAINT releaseDate_check CHECK (releaseDate > '1895-12-28'),
 	CONSTRAINT duration_positive CHECK (duration > 0)
+
 );
 
 
@@ -23,7 +24,7 @@ CREATE TABLE IF NOT EXISTS genre (
 );
 
 CREATE TABLE IF NOT EXISTS film_genre (
-	film_id INTEGER REFERENCES films (id),
+	film_id INTEGER REFERENCES films (id) ON DELETE CASCADE,
 	genre_id INTEGER REFERENCES genre (id)
 );
 
@@ -41,7 +42,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS likes (
 	film_id INTEGER REFERENCES films (id),
-	user_id INTEGER REFERENCES users (id)
+	user_id INTEGER REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS friendship_status (
@@ -50,7 +51,7 @@ CREATE TABLE IF NOT EXISTS friendship_status (
 );
 
 CREATE TABLE IF NOT EXISTS friends (
-	user_id INTEGER REFERENCES users (id),
+	user_id INTEGER REFERENCES users (id) ON DELETE CASCADE,
 	friend_id INTEGER REFERENCES users (id),
 	status_id INTEGER REFERENCES friendship_status (id)
 );

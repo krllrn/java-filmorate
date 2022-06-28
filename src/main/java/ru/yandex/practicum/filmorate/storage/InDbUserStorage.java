@@ -27,7 +27,7 @@ public class InDbUserStorage implements UserStorage {
 
     @Override
     public List<User> returnAll() {
-        String sqlQuery = "select * from users";
+        String sqlQuery = "SELECT * FROM users";
         return jdbcTemplate.query(sqlQuery, new BeanPropertyRowMapper<>(User.class));
     }
 
@@ -36,7 +36,7 @@ public class InDbUserStorage implements UserStorage {
         if (user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
-        String sqlQuery = "insert into users(email, name, login, birthday) " + "values (?, ?, ?, ?)";
+        String sqlQuery = "INSERT INTO users(email, name, login, birthday) VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection
@@ -57,14 +57,17 @@ public class InDbUserStorage implements UserStorage {
         jdbcTemplate.update(sqlQuery, id);
     }
 
+    public void deleteAll() {
+        String sqlQuery = "DELETE FROM users";
+        jdbcTemplate.update(sqlQuery);
+    }
+
     @Override
     public User update(User user) {
         if (getUserById(user.getId()) == null) {
             throw new NotFoundException("Пользователь не найден!");
         } else {
-            String sqlQuery = "update users set " +
-                    "email = ?, name = ?, login = ?, birthday = ?" +
-                    "where id = ?";
+            String sqlQuery = "UPDATE users SET email = ?, name = ?, login = ?, birthday = ? WHERE id = ?";
             jdbcTemplate.update(sqlQuery,
                     user.getEmail(),
                     user.getName(),
@@ -77,7 +80,7 @@ public class InDbUserStorage implements UserStorage {
 
     @Override
     public User getUserById(int id) {
-        String sqlQuery = "select * from users where id = ?";
+        String sqlQuery = "SELECT * FROM users WHERE id = ?";
         SqlRowSet userRowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
         if (userRowSet.next()) {
             User user = new User(
@@ -98,13 +101,13 @@ public class InDbUserStorage implements UserStorage {
     }
 
     public void addFriend(int userId, int friendId) {
-        String sqlQuery = "insert into friends (user_id, friend_id, status_id)" + "values(?, ?, ?)";
+        String sqlQuery = "INSERT INTO friends (user_id, friend_id, status_id) values(?, ?, ?)";
         jdbcTemplate.update(sqlQuery, userId, friendId, 0);
     }
 
     public Set<User> showFriends(int userId) {
         Set fl = new HashSet<>();
-        String sqlQuery = "select * from users where id in (select friend_id from friends where user_id = ?)";
+        String sqlQuery = "SELECT * FROM users WHERE id IN (SELECT friend_id FROM friends WHERE user_id = ?)";
         SqlRowSet userRowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId);
         while (userRowSet.next()) {
             User friendFound = new User(userRowSet.getInt("id"),
@@ -119,13 +122,13 @@ public class InDbUserStorage implements UserStorage {
     }
 
     public void deleteFriend(int userId, int friendId) {
-        String sqlQuery = "delete from friends where user_id = ? AND friend_id = ?";
+        String sqlQuery = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sqlQuery, userId, friendId);
     }
 
     public Set<User> showCommonFriends(int userId, int friendId) {
-        Set uf = showFriends(userId);
-        Set ff = showFriends(friendId);
+        Set<User> uf = showFriends(userId);
+        Set<User> ff = showFriends(friendId);
         uf.retainAll(ff);
 
         return uf;

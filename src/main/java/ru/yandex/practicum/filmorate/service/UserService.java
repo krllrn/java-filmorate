@@ -20,7 +20,7 @@ public class UserService {
     // добавление в друзья
     public void friendAdd(int userId, int friendId) {
         if (inDbUserStorage.getUserById(friendId) == null || inDbUserStorage.getUserById(userId) == null) {
-            throw new NotFoundException("Пользователь с одним из id не найден.");
+            throw new NotFoundException("Пользователь с одним из id не может быть найден.");
         }
         inDbUserStorage.addFriend(userId, friendId);
     }

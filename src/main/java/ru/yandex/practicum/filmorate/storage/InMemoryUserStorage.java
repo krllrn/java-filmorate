@@ -39,6 +39,11 @@ public class InMemoryUserStorage implements UserStorage {
         users.remove(id);
     }
 
+    @Override
+    public void deleteAll() {
+
+    }
+
     public User update(User user) {
         if (user.getName().isEmpty()) {
             user.setName(user.getLogin());

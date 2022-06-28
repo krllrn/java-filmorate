@@ -29,14 +29,14 @@ public class InDbFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> returnAll() {
-        String sqlReturnAll = "select * from films";
+        String sqlReturnAll = "SELECT * FROM films";
         return jdbcTemplate.query(sqlReturnAll, new FilmMapRow());
     }
 
     @Override
     public Film create(Film film) {
-        String sqlQueryFilms = "insert into films(name, description, releaseDate, duration, rating_id) " + "values " +
-                "(?, ?, ?, ?, ?)";
+        String sqlQueryFilms = "INSERT INTO films(name, description, releaseDate, duration, rating_id) " +
+                "VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection
@@ -64,8 +64,13 @@ public class InDbFilmStorage implements FilmStorage {
 
     @Override
     public void delete(int id) {
-        String sqlQuery = "delete from films where id = ?";
+        String sqlQuery = "DELETE FROM films WHERE id = ?";
         jdbcTemplate.update(sqlQuery, id);
+    }
+
+    public void deleteAll() {
+        String sqlQuery = "DELETE FROM films";
+        jdbcTemplate.update(sqlQuery);
     }
 
     @Override
@@ -73,7 +78,7 @@ public class InDbFilmStorage implements FilmStorage {
         if (getFilmById(film.getId()) == null) {
             throw new NotFoundException("Фильм не найден!");
         } else {
-            String sqlQuery = "update films set " +
+            String sqlQuery = "UPDATE films SET " +
                     "name = ?, description = ?, releaseDate = ?, duration = ?, rating_id = ? " +
                     "where id = ?";
             jdbcTemplate.update(sqlQuery,
@@ -94,7 +99,7 @@ public class InDbFilmStorage implements FilmStorage {
     @Override
     public Film getFilmById(int id) {
         TreeSet<Genre> filmGenres = new TreeSet<>();
-        String sqlQuery = "select * from films where id = ?";
+        String sqlQuery = "SELECT * FROM films WHERE id = ?";
         SqlRowSet filmRowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
         if (filmRowSet.next()) {
             Film film = new Film(
@@ -105,8 +110,7 @@ public class InDbFilmStorage implements FilmStorage {
                     filmRowSet.getInt("duration"),
                     returnRatingById(filmRowSet.getInt("rating_id"))
             );
-            String sqlQueryGenre = "select * from genre where id in (select genre_id from film_genre where film_id = " +
-                    "?)";
+            String sqlQueryGenre = "SELECT * FROM genre WHERE id IN (SELECT genre_id FROM film_genre WHERE film_id = ?)";
             SqlRowSet genreRowSet = jdbcTemplate.queryForRowSet(sqlQueryGenre, film.getId());
             while (genreRowSet.next()) {
                 Genre genreFound = new Genre(
@@ -129,12 +133,12 @@ public class InDbFilmStorage implements FilmStorage {
     }
 
     public List<Genre> returnAllGenres() {
-        String sqlReturnAll = "select * from genre";
+        String sqlReturnAll = "SELECT * FROM genre";
         return jdbcTemplate.query(sqlReturnAll, new BeanPropertyRowMapper<>(Genre.class));
     }
 
     public Genre returnGenreById(int id) {
-        String sqlQuery = "select * from genre where id = ?";
+        String sqlQuery = "SELECT * FROM genre WHERE id = ?";
         SqlRowSet genreRowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
         if (genreRowSet.next()) {
             Genre genre = new Genre(
@@ -149,12 +153,12 @@ public class InDbFilmStorage implements FilmStorage {
     }
 
     public List<Mpa> returnAllRatings() {
-        String sqlReturnAll = "select * from film_rating";
+        String sqlReturnAll = "SELECT * FROM film_rating";
         return jdbcTemplate.query(sqlReturnAll, new BeanPropertyRowMapper<>(Mpa.class));
     }
 
     public Mpa returnRatingById(int id) {
-        String sqlQuery = "select * from film_rating where id = ?";
+        String sqlQuery = "SELECT * FROM film_rating WHERE id = ?";
         SqlRowSet ratingRowSet = jdbcTemplate.queryForRowSet(sqlQuery, id);
         if (ratingRowSet.next()) {
             Mpa rating = new Mpa(

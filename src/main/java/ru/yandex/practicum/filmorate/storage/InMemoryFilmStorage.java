@@ -47,6 +47,11 @@ public class InMemoryFilmStorage implements FilmStorage{
         films.remove(id);
     }
 
+    @Override
+    public void deleteAll() {
+
+    }
+
     public Film update(@Valid @RequestBody Film film) {
         if (film.getReleaseDate().isBefore(startFilmsDate)) {
             throw new ValidationException("Wrong release date. Films starts from: " + startFilmsDate);
