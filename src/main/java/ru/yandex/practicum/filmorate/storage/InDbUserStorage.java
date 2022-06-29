@@ -100,11 +100,13 @@ public class InDbUserStorage implements UserStorage {
         }
     }
 
+    @Override
     public void addFriend(int userId, int friendId) {
         String sqlQuery = "INSERT INTO friends (user_id, friend_id, status_id) values(?, ?, ?)";
         jdbcTemplate.update(sqlQuery, userId, friendId, 0);
     }
 
+    @Override
     public Set<User> showFriends(int userId) {
         Set fl = new HashSet<>();
         String sqlQuery = "SELECT * FROM users WHERE id IN (SELECT friend_id FROM friends WHERE user_id = ?)";
@@ -121,11 +123,13 @@ public class InDbUserStorage implements UserStorage {
         return fl;
     }
 
+    @Override
     public void deleteFriend(int userId, int friendId) {
         String sqlQuery = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sqlQuery, userId, friendId);
     }
 
+    @Override
     public Set<User> showCommonFriends(int userId, int friendId) {
         Set<User> uf = showFriends(userId);
         Set<User> ff = showFriends(friendId);

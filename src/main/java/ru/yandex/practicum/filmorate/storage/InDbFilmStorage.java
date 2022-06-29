@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -22,9 +23,11 @@ import java.util.*;
 public class InDbFilmStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final GenreService genreService;
 
-    public InDbFilmStorage(JdbcTemplate jdbcTemplate) {
+    public InDbFilmStorage(JdbcTemplate jdbcTemplate, GenreService genreService) {
         this.jdbcTemplate = jdbcTemplate;
+        this.genreService = genreService;
     }
 
     @Override
@@ -50,16 +53,9 @@ public class InDbFilmStorage implements FilmStorage {
         }, keyHolder);
         film.setId((Integer) keyHolder.getKey());
         if (film.getGenres() != null  && !film.getGenres().isEmpty()) {
-            linkToGenre(film);
+            genreService.linkToGenre(film);
         }
         return film;
-    }
-
-    public void linkToGenre(Film film) {
-        String sqlQuery = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
-        for (Genre genre : film.getGenres()) {
-            jdbcTemplate.update(sqlQuery, film.getId(), genre.getId());
-        }
     }
 
     @Override
@@ -90,7 +86,7 @@ public class InDbFilmStorage implements FilmStorage {
                     film.getId());
             jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", film.getId());
             if (film.getGenres() != null  && !film.getGenres().isEmpty()) {
-                linkToGenre(film);
+                genreService.linkToGenre(film);
             }
             return film;
         }

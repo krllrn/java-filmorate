@@ -1,18 +1,16 @@
 package ru.yandex.practicum.filmorate;
 
-import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InDbFilmStorage;
-import ru.yandex.practicum.filmorate.storage.InDbUserStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -23,10 +21,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmoRateApplicationTests {
-	private final InDbUserStorage inDbUserStorage;
-	private final InDbFilmStorage inDbFilmStorage;
+	private final UserStorage userStorage;
+	private final FilmStorage filmStorage;
+
+	@Autowired
+	public FilmoRateApplicationTests (@Qualifier("inDbUserStorage") UserStorage userStorage,
+									  @Qualifier("inDbFilmStorage") FilmStorage filmStorage) {
+		this.userStorage = userStorage;
+		this.filmStorage = filmStorage;
+	}
 
 	private final User user = new User("user@mail.ru", "UserName", "UserLogin",
 			LocalDate.parse("1988-07-27"));
@@ -41,13 +45,13 @@ class FilmoRateApplicationTests {
 
 	@BeforeEach
 	public void clear() {
-		inDbUserStorage.deleteAll();
-		inDbFilmStorage.deleteAll();
+		userStorage.deleteAll();
+		filmStorage.deleteAll();
 	}
 
 	@Test
 	public void testCreateUser() {
-		Optional<User> userOptional = Optional.ofNullable(inDbUserStorage.create(user));
+		Optional<User> userOptional = Optional.ofNullable(userStorage.create(user));
 
 		assertThat(userOptional)
 				.isPresent()
@@ -59,8 +63,8 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testFindUserById() {
-		inDbUserStorage.create(user);
-		Optional<User> userOptionalT = Optional.ofNullable(inDbUserStorage.getUserById(user.getId()));
+		userStorage.create(user);
+		Optional<User> userOptionalT = Optional.ofNullable(userStorage.getUserById(user.getId()));
 
 		assertThat(userOptionalT)
 				.isPresent()
@@ -71,27 +75,27 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testReturnAll() {
-		inDbUserStorage.create(user);
-		inDbUserStorage.create(friend);
+		userStorage.create(user);
+		userStorage.create(friend);
 
-		assertEquals(2, inDbUserStorage.returnAll().size());
+		assertEquals(2, userStorage.returnAll().size());
 	}
 
 	@Test
 	public void testDeleteUserById() {
-		inDbUserStorage.create(user);
-		inDbUserStorage.create(friend);
-		inDbUserStorage.delete(user.getId());
+		userStorage.create(user);
+		userStorage.create(friend);
+		userStorage.delete(user.getId());
 
-		assertEquals(1, inDbUserStorage.returnAll().size());
+		assertEquals(1, userStorage.returnAll().size());
 	}
 
 	@Test
 	public void testUpdateUser() {
-		inDbUserStorage.create(user);
+		userStorage.create(user);
 		updateUser.setId(user.getId());
-		inDbUserStorage.update(updateUser);
-		Optional<User> userOptional = Optional.ofNullable(inDbUserStorage.getUserById(updateUser.getId()));
+		userStorage.update(updateUser);
+		Optional<User> userOptional = Optional.ofNullable(userStorage.getUserById(updateUser.getId()));
 
 		assertThat(userOptional)
 				.isPresent()
@@ -102,10 +106,10 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testAddAndShowFriend() {
-		inDbUserStorage.create(user);
-		inDbUserStorage.create(friend);
-		inDbUserStorage.addFriend(user.getId(), friend.getId());
-		Set<User> fl = new HashSet<>(inDbUserStorage.showFriends(user.getId()));
+		userStorage.create(user);
+		userStorage.create(friend);
+		userStorage.addFriend(user.getId(), friend.getId());
+		Set<User> fl = new HashSet<>(userStorage.showFriends(user.getId()));
 		assertEquals(1, fl.size());
 		User friendUser = new User();
 
@@ -118,17 +122,17 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testDeleteFriend() {
-		inDbUserStorage.create(user);
-		inDbUserStorage.create(friend);
-		inDbUserStorage.addFriend(user.getId(), friend.getId());
-		inDbUserStorage.deleteFriend(user.getId(), friend.getId());
+		userStorage.create(user);
+		userStorage.create(friend);
+		userStorage.addFriend(user.getId(), friend.getId());
+		userStorage.deleteFriend(user.getId(), friend.getId());
 
-		assertEquals(0, inDbUserStorage.showFriends(user.getId()).size());
+		assertEquals(0, userStorage.showFriends(user.getId()).size());
 	}
 
 	@Test
 	public void testCreateFilm() {
-		Optional<Film> filmOptional = Optional.ofNullable(inDbFilmStorage.create(film));
+		Optional<Film> filmOptional = Optional.ofNullable(filmStorage.create(film));
 
 		assertThat(filmOptional)
 				.isPresent()
@@ -140,8 +144,8 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testFindFilmById() {
-		inDbFilmStorage.create(film);
-		Optional<Film> filmOptional = Optional.ofNullable(inDbFilmStorage.getFilmById(film.getId()));
+		filmStorage.create(film);
+		Optional<Film> filmOptional = Optional.ofNullable(filmStorage.getFilmById(film.getId()));
 
 		assertThat(filmOptional)
 				.isPresent()
@@ -152,27 +156,27 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testReturnAllFilms() {
-		inDbFilmStorage.create(film);
-		inDbFilmStorage.create(film2);
+		filmStorage.create(film);
+		filmStorage.create(film2);
 
-		assertEquals(2, inDbFilmStorage.returnAll().size());
+		assertEquals(2, filmStorage.returnAll().size());
 	}
 
 	@Test
 	public void testDeleteFilmById() {
-		inDbFilmStorage.create(film);
-		inDbFilmStorage.create(film2);
-		inDbFilmStorage.delete(film2.getId());
+		filmStorage.create(film);
+		filmStorage.create(film2);
+		filmStorage.delete(film2.getId());
 
-		assertEquals(1, inDbFilmStorage.returnAll().size());
+		assertEquals(1, filmStorage.returnAll().size());
 	}
 
 	@Test
 	public void testUpdateFilm() {
-		inDbFilmStorage.create(film);
+		filmStorage.create(film);
 		film2.setId(film.getId());
-		inDbFilmStorage.update(film2);
-		Optional<Film> filmOptional = Optional.ofNullable(inDbFilmStorage.getFilmById(film2.getId()));
+		filmStorage.update(film2);
+		Optional<Film> filmOptional = Optional.ofNullable(filmStorage.getFilmById(film2.getId()));
 
 		assertThat(filmOptional)
 				.isPresent()

@@ -59,13 +59,4 @@ public class Film {
         this.duration = duration;
         this.mpa = mpa;
     }
-
-    public void addLikes(User user) {
-        likes.add(user);
-    }
-
-    public void removeLikes(User user) {
-        likes.remove(user);
-    }
-
 }

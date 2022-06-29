@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
+import java.util.Set;
 
-@Qualifier("inDbUserStorage")
 public interface UserStorage {
     List<User> returnAll();
     User create(User user);
@@ -13,4 +13,8 @@ public interface UserStorage {
     void deleteAll();
     User update(User user);
     User getUserById(int id);
+    void addFriend(int userId, int friendId);
+    Set<User> showFriends(int userId);
+    void deleteFriend(int userId, int friendId);
+    Set<User> showCommonFriends(int userId, int friendId);
 }
