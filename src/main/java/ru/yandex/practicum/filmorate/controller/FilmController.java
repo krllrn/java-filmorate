@@ -1,12 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.IncorrectVarException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.service.FilmDBService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -14,41 +14,39 @@ import java.util.List;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    InMemoryFilmStorage inMemoryFilmStorage;
-    FilmService filmService;
+    FilmStorage filmStorage;
+    FilmDBService filmDBService;
 
     @Autowired
-    public FilmController (InMemoryFilmStorage inMemoryFilmStorage, FilmService filmService) {
-        this.inMemoryFilmStorage = inMemoryFilmStorage;
-        this.filmService = filmService;
+    public FilmController (@Qualifier("inDbFilmStorage")
+                               FilmStorage filmStorage, FilmDBService filmDBService) {
+        this.filmStorage = filmStorage;
+        this.filmDBService = filmDBService;
     }
 
     @GetMapping()
     public List<Film> returnAll() {
-        return inMemoryFilmStorage.returnAll();
+        return filmStorage.returnAll();
     }
 
     @GetMapping("/{id}")
     public Film findById(@PathVariable int id) {
-        return inMemoryFilmStorage.returnAll().stream()
-                .filter(x -> x.getId() == id)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
+        return filmStorage.getFilmById(id);
     }
 
     @PostMapping()
     public @ResponseBody Film create(@Valid @RequestBody Film film) {
-        return inMemoryFilmStorage.create(film);
+        return filmStorage.create(film);
     }
 
     @PutMapping()
     public @ResponseBody Film update(@Valid @RequestBody Film film) {
-        return inMemoryFilmStorage.update(film);
+        return filmStorage.update(film);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {
-        inMemoryFilmStorage.delete(id);
+        filmStorage.delete(id);
     }
 
 // ----------------- LIKES ----------------------------
@@ -57,12 +55,12 @@ public class FilmController {
         if (id < 0 || userId < 0) {
             throw new IncorrectVarException("ID не должны быть отрицательными!");
         }
-        filmService.addLike(id, userId);
+        filmDBService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void deleteLike(@PathVariable int id, @PathVariable int userId) {
-        filmService.deleteLike(id, userId);
+        filmDBService.deleteLike(id, userId);
     }
 
     @GetMapping("/popular")
@@ -70,6 +68,6 @@ public class FilmController {
         if (count < 0) {
             throw new IncorrectVarException("COUNT не должен быть отрицательным или равным нулю!");
         }
-        return filmService.popularFilms(count);
+        return filmDBService.popularFilms(count);
     }
 }

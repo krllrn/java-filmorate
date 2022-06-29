@@ -1,208 +1,187 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.time.LocalDate;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 @SpringBootTest
-@AutoConfigureMockMvc
-class FilmorateApplicationTests {
+@AutoConfigureTestDatabase
+class FilmoRateApplicationTests {
+	private final UserStorage userStorage;
+	private final FilmStorage filmStorage;
 
 	@Autowired
-	MockMvc mockMvc;
-
-	@Test
-	void contextLoads() {
+	public FilmoRateApplicationTests (@Qualifier("inDbUserStorage") UserStorage userStorage,
+									  @Qualifier("inDbFilmStorage") FilmStorage filmStorage) {
+		this.userStorage = userStorage;
+		this.filmStorage = filmStorage;
 	}
 
-// ----------------- USERS --------------------------
+	private final User user = new User("user@mail.ru", "UserName", "UserLogin",
+			LocalDate.parse("1988-07-27"));
+	private final User friend = new User("friend@mail.ru", "FriendName", "FriendLogin",
+			LocalDate.parse("1988-07-27"));
+	private final User updateUser = new User("update@mail.ru", "UpdateName", "UpdateLogin",
+			LocalDate.parse("1988-07-27"));
 
-	@Test
-	void badRequestWhenEmptyUserEmail() throws Exception {
-		mockMvc.perform(post("/users")
-						.contentType("application/json")
-						.content("{\"login\": \"dolore\", \"name\": \"Nick Name\", \"email\": \"\", \"birthday\": \"1946-08-20\"}"))
-				.andExpect(status().isBadRequest());
-	}
+	private final Mpa mpa = new Mpa(1);
+	private final Film film = new Film("Film Name", "Description", LocalDate.parse("1988-07-27"), 160, mpa);
+	private final Film film2 = new Film("Film Name2", "Description2", LocalDate.parse("1988-07-27"), 160, mpa);
 
-	@Test
-	void badRequestWhenNoCommercialAtInUserEmail() throws Exception {
-		mockMvc.perform(post("/users")
-						.contentType("application/json")
-						.content("{\"login\": \"dolore\", \"name\": \"Nick Name\", \"email\": \"test_email.ru\", \"birthday\": \"1946-08-20\"}"))
-				.andExpect(status().isBadRequest());
-	}
-
-	@Test
-	void badRequestWhenUserLoginIsEmpty() throws Exception {
-		mockMvc.perform(post("/users")
-						.contentType("application/json")
-						.content("{\"login\": \"\", \"name\": \"Nick Name\", \"email\": \"test_email@ya.ru\", \"birthday\": \"1946-08-20\"}"))
-				.andExpect(status().isBadRequest());
+	@BeforeEach
+	public void clear() {
+		userStorage.deleteAll();
+		filmStorage.deleteAll();
 	}
 
 	@Test
-	void badRequestWhenUserLoginContainBlank() throws Exception {
-		mockMvc.perform(post("/users")
-						.contentType("application/json")
-						.content("{\"login\": \"dolore gump\", \"name\": \"Nick Name\", \"email\": \"test_email@ya.ru\", \"birthday\": \"1946-08-20\"}"))
-				.andExpect(status().isBadRequest());
+	public void testCreateUser() {
+		Optional<User> userOptional = Optional.ofNullable(userStorage.create(user));
+
+		assertThat(userOptional)
+				.isPresent()
+				.hasValueSatisfying(user ->
+						assertThat(user).hasFieldOrPropertyWithValue("login", "UserLogin")
+				);
+	}
+
+
+	@Test
+	public void testFindUserById() {
+		userStorage.create(user);
+		Optional<User> userOptionalT = Optional.ofNullable(userStorage.getUserById(user.getId()));
+
+		assertThat(userOptionalT)
+				.isPresent()
+				.hasValueSatisfying(user ->
+						assertThat(user).hasFieldOrPropertyWithValue("login", "UserLogin")
+				);
 	}
 
 	@Test
-	void isOkWhenUserNameIsEmpty() throws Exception {
-		mockMvc.perform(post("/users")
-						.contentType("application/json")
-						.content("{\"login\": \"dolore\", \"name\": \"\", \"email\": \"test_email@ya.ru\", \"birthday\": \"1946-08-20\"}"))
-				.andExpect(status().isOk());
+	public void testReturnAll() {
+		userStorage.create(user);
+		userStorage.create(friend);
+
+		assertEquals(2, userStorage.returnAll().size());
 	}
 
 	@Test
-	void badRequestIfUserBirthdateInFuture() throws Exception {
-		mockMvc.perform(post("/users")
-						.contentType("application/json")
-						.content("{\"login\": \"dolore\", \"name\": \"Nick Name\", \"email\": \"test_email@ya.ru\", \"birthday\": \"2050-08-20\"}"))
-				.andExpect(status().isBadRequest());
+	public void testDeleteUserById() {
+		userStorage.create(user);
+		userStorage.create(friend);
+		userStorage.delete(user.getId());
+
+		assertEquals(1, userStorage.returnAll().size());
 	}
 
 	@Test
-	void badRequestIfUserRequestIsEmpty() throws Exception {
-		mockMvc.perform(post("/users")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isBadRequest());
+	public void testUpdateUser() {
+		userStorage.create(user);
+		updateUser.setId(user.getId());
+		userStorage.update(updateUser);
+		Optional<User> userOptional = Optional.ofNullable(userStorage.getUserById(updateUser.getId()));
+
+		assertThat(userOptional)
+				.isPresent()
+				.hasValueSatisfying(user ->
+						assertThat(user).hasFieldOrPropertyWithValue("login", "UpdateLogin")
+				);
 	}
 
 	@Test
-	void notFoundIfNoUserIdInStorage() throws Exception {
-		mockMvc.perform(get("/users/9999")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isNotFound());
-	}
-	//------FRIENDS-----------
-	@Test
-	void serverErrorIfUserAndFriendSameID() throws Exception {
-		mockMvc.perform(put("/users/1/friends/1")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isInternalServerError());
+	public void testAddAndShowFriend() {
+		userStorage.create(user);
+		userStorage.create(friend);
+		userStorage.addFriend(user.getId(), friend.getId());
+		Set<User> fl = new HashSet<>(userStorage.showFriends(user.getId()));
+		assertEquals(1, fl.size());
+		User friendUser = new User();
+
+		for (User u : fl) {
+			friendUser = u;
+		}
+
+		assertEquals("FriendLogin", friendUser.getLogin());
 	}
 
 	@Test
-	void notFoundIfNoUserOrFriendIdInStorage() throws Exception {
-		mockMvc.perform(put("/users/1/friends/2")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isNotFound());
+	public void testDeleteFriend() {
+		userStorage.create(user);
+		userStorage.create(friend);
+		userStorage.addFriend(user.getId(), friend.getId());
+		userStorage.deleteFriend(user.getId(), friend.getId());
+
+		assertEquals(0, userStorage.showFriends(user.getId()).size());
 	}
 
 	@Test
-	void serverErrorIfUserIdIsNegative() throws Exception {
-		mockMvc.perform(get("/users/-1/friends")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isInternalServerError());
+	public void testCreateFilm() {
+		Optional<Film> filmOptional = Optional.ofNullable(filmStorage.create(film));
+
+		assertThat(filmOptional)
+				.isPresent()
+				.hasValueSatisfying(film ->
+						assertThat(film).hasFieldOrPropertyWithValue("name", "Film Name")
+				);
 	}
 
-// ------------------- FILMS ----------------------------
 
 	@Test
-	void badRequestIfFilmNameIsEmpty() throws Exception {
-		mockMvc.perform(post("/films")
-						.contentType("application/json")
-						.content("{\"name\": \"\", \"description\": \"adipisicing\", \"releaseDate\": \"1967-03-25\", \"duration\": \"100\"}"))
-				.andExpect(status().isBadRequest());
-	}
+	public void testFindFilmById() {
+		filmStorage.create(film);
+		Optional<Film> filmOptional = Optional.ofNullable(filmStorage.getFilmById(film.getId()));
 
-	@Test
-	void badRequestIfFilmDescriptionIsMoreThan200() throws Exception {
-		mockMvc.perform(post("/films")
-						.contentType("application/json")
-						.content("{\"name\": \"test film\", \"description\": \"fksjdfkjskfj;lsjdfklxmcvnm,nerlkwjelkfjlk" +
-								"asdklfkjlsdklhlsjakhfdjklsakljdhfjkshadjkfakjsjdjdjdjdjdjaslkjhdfl;jahsdl;jkfhl;jsdhfj" +
-								"ashjdfhjkasfjshfhfjsdhfjsakhfkjsahdfjksdjfhfasjkfhsdjkhfjkadfhjashfsadjkqw\", " +
-								"\"releaseDate\": \"1967-03-25\", \"duration\": \"100\"}"))
-				.andExpect(status().isBadRequest());
+		assertThat(filmOptional)
+				.isPresent()
+				.hasValueSatisfying(user ->
+						assertThat(user).hasFieldOrPropertyWithValue("name", "Film Name")
+				);
 	}
 
 	@Test
-	void isOkIfFilmDescriptionIs200() throws Exception {
-		mockMvc.perform(post("/films")
-						.contentType("application/json")
-						.content("{\"name\": \"test film\", \"description\": \"fksjdfkjskfj;lsjdfklxmcvnm,nerlkwjelkfjl" +
-								"kasdklfkjlsdklhlsjakhfdjklsakljdhfjkshadjkfakjsjdjdjdjdjdjaslkjhdfl;jahsdl;jkfhl;jsdhfj" +
-								"ashjdfhjkasfjshfhfjsdhfjsakhfkjsahdfjksdjfhfasjkfhsdjkhfjkadfhjashfsadjk\", " +
-								"\"releaseDate\": \"1967-03-25\", \"duration\": \"100\"}"))
-				.andExpect(status().isOk());
+	public void testReturnAllFilms() {
+		filmStorage.create(film);
+		filmStorage.create(film2);
+
+		assertEquals(2, filmStorage.returnAll().size());
 	}
 
 	@Test
-	void badRequestIfFilmReleaseDateWrong() throws Exception {
-		mockMvc.perform(post("/films")
-						.contentType("application/json")
-						.content("{\"name\": \"test film\", \"description\": \"adipisicing\", \"releaseDate\": \"1895-12-27\", \"duration\": \"100\"}"))
-				.andExpect(status().isBadRequest());
+	public void testDeleteFilmById() {
+		filmStorage.create(film);
+		filmStorage.create(film2);
+		filmStorage.delete(film2.getId());
+
+		assertEquals(1, filmStorage.returnAll().size());
 	}
 
 	@Test
-	void badRequestIfFilmDurationIsNegative() throws Exception {
-		mockMvc.perform(post("/films")
-						.contentType("application/json")
-						.content("{\"name\": \"test film\", \"description\": \"adipisicing\", \"releaseDate\": \"1967-03-25\", \"duration\": \"-1\"}"))
-				.andExpect(status().isBadRequest());
-	}
+	public void testUpdateFilm() {
+		filmStorage.create(film);
+		film2.setId(film.getId());
+		filmStorage.update(film2);
+		Optional<Film> filmOptional = Optional.ofNullable(filmStorage.getFilmById(film2.getId()));
 
-	@Test
-	void badRequestIfFilmRequestIsEmpty() throws Exception {
-		mockMvc.perform(post("/films")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isBadRequest());
+		assertThat(filmOptional)
+				.isPresent()
+				.hasValueSatisfying(film ->
+						assertThat(film).hasFieldOrPropertyWithValue("name", "Film Name2")
+				);
 	}
-
-	@Test
-	void notFoundIfNoFilmIdInStorage() throws Exception {
-		mockMvc.perform(get("/films/9999")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isNotFound());
-	}
-	//------LIKES-----------
-	@Test
-	void serverErrorIfFilmIDIsNegative() throws Exception {
-		mockMvc.perform(put("/films/-1/like/1")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isInternalServerError());
-	}
-
-	@Test
-	void serverErrorIfUserIDIsNegative() throws Exception {
-		mockMvc.perform(put("/films/1/like/-1")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isInternalServerError());
-	}
-
-	@Test
-	void notFoundIfNoUserOrFilmIdInStorage() throws Exception {
-		mockMvc.perform(put("/films/1/like/2")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isNotFound());
-	}
-
-	@Test
-	void serverErrorIfCountIsNegative() throws Exception {
-		mockMvc.perform(get("/films/popular?count=-1")
-						.contentType("application/json")
-						.content("{}"))
-				.andExpect(status().isInternalServerError());
-	}
-}
+} 

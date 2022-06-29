@@ -1,71 +1,43 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
 
 @Service
-public class UserService {
-    InMemoryUserStorage inMemoryUserStorage;
+public class UserService implements UserDBService {
+    UserStorage userStorage;
 
     @Autowired
-    public UserService (InMemoryUserStorage inMemoryUserStorage) {
-        this.inMemoryUserStorage = inMemoryUserStorage;
+    public UserService (@Qualifier("inDbUserStorage") UserStorage userStorage) {
+        this.userStorage = userStorage;
     }
 
     // добавление в друзья
     public void friendAdd(int userId, int friendId) {
-        User user = inMemoryUserStorage.returnAll().parallelStream()
-                .filter(x -> x.getId() == userId)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
-        User friend = inMemoryUserStorage.returnAll().parallelStream()
-                .filter(x -> x.getId() == friendId)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
-        user.addFriends(friend);
-        friend.addFriends(user);
+        if (userStorage.getUserById(friendId) == null || userStorage.getUserById(userId) == null) {
+            throw new NotFoundException("Пользователь с одним из id не может быть найден.");
+        }
+        userStorage.addFriend(userId, friendId);
     }
 
     // удаление из друзей
     public void friendDelete(int userId, int friendId) {
-        User user = inMemoryUserStorage.returnAll().parallelStream()
-                .filter(x -> x.getId() == userId)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
-        User friend = inMemoryUserStorage.returnAll().parallelStream()
-                .filter(x -> x.getId() == friendId)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
-        user.removeFriend(friend);
-        friend.removeFriend(user);
+        userStorage.deleteFriend(userId, friendId);
     }
 
     // вывод списка друзей
     public Set<User> showFriends(int userId) {
-        if (!inMemoryUserStorage.getUsers().containsKey(userId)) {
-            throw new NotFoundException("Объект не найден!");
-        }
-        return inMemoryUserStorage.getUserById(userId).getFriends();
+        return userStorage.showFriends(userId);
     }
 
     // вывод списка общих друзей
     public Set<User> showCommonFriends(int userId, int friendId) {
-        User user = inMemoryUserStorage.returnAll().parallelStream()
-                .filter(x -> x.getId() == userId)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
-        User friend = inMemoryUserStorage.returnAll().parallelStream()
-                .filter(x -> x.getId() == friendId)
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Объект не найден!"));
-        Set<User> userSet = new HashSet<>(user.getFriends());
-        Set<User> friendSet = new HashSet<>(friend.getFriends());
-        userSet.retainAll(friendSet);
-        return userSet;
+        return userStorage.showCommonFriends(userId, friendId);
     }
 }

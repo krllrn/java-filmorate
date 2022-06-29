@@ -2,15 +2,11 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.ResponseBody;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -43,6 +39,11 @@ public class InMemoryUserStorage implements UserStorage {
         users.remove(id);
     }
 
+    @Override
+    public void deleteAll() {
+
+    }
+
     public User update(User user) {
         if (user.getName().isEmpty()) {
             user.setName(user.getLogin());
@@ -55,11 +56,27 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    public Map<Integer, User> getUsers() {
-        return users;
+    public User getUserById(int id) {
+        return null;
     }
 
-    public User getUserById(int id) {
-        return users.get(id);
+    @Override
+    public void addFriend(int userId, int friendId) {
+
+    }
+
+    @Override
+    public Set<User> showFriends(int userId) {
+        return null;
+    }
+
+    @Override
+    public void deleteFriend(int userId, int friendId) {
+
+    }
+
+    @Override
+    public Set<User> showCommonFriends(int userId, int friendId) {
+        return null;
     }
 }
