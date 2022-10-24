@@ -1,5 +1,9 @@
-# java-filmorate
-Template repository for Filmorate project.
+# Filmorate
+Бэкенд для сервиса, который будет работать с фильмами и оценками пользователей, а также возвращать топ-5 фильмов, рекомендованных к просмотру.
 
-ERD for project:
+###### Версии
+`Java`: 11  
+`DB`: PostgreSQL
+
+### ERD for project:
 ![ERD](ERD_fp10.jpeg)
